@@ -34,21 +34,42 @@ for w in words:
 
 
 
-#Find the percent likelihood of each bigram
+#find the percent likelihood of each bigram
 P = (N+1).float()
 P /= P.sum(1, keepdims=True)
 
 
 g = torch.Generator().manual_seed(2147483647)
 
-for i in range(5):
+#generate names
+for i in range(10):
   
   out = []
   ix = 0
   while True:
     p = P[ix]
-    ix = torch.multinomial(p, num_samples=1, replacement=True, generator=g).item()
+    ix = torch.multinomial(p, num_samples=1, replacement=True).item()
     out.append(itos[ix])
     if ix == 0:
       break
   print(''.join(out))
+
+
+#calculate cross entropy loss
+x_list, y_list = [], []
+for w in words:
+    chs = ['.'] + list(w) + ['.']
+    for ch1, ch2 in zip(chs, chs[1:]):
+        x_list.append(stoi[ch1])
+        y_list.append(stoi[ch2])
+
+x_tensor = torch.tensor(x_list, dtype=torch.long)
+y_tensor = torch.tensor(y_list, dtype=torch.long)
+
+log_P = torch.log(P + 1e-8)
+
+selected_log_probs = log_P[x_tensor, y_tensor]
+
+#print
+cross_entropy = -selected_log_probs.mean().item()
+print(f"Cross-entropy loss: {cross_entropy:.4f} nats per character")
