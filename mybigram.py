@@ -11,7 +11,7 @@ for w in words:
   for ch1, ch2 in zip(chs, chs[1:]):
     bigram = (ch1, ch2)
     b[bigram] = b.get(bigram, 0) + 1
-print(b)
+#print(b)
 
 
 #create empty tensor
@@ -32,3 +32,23 @@ for w in words:
     ix2 = stoi[ch2]
     N[ix1, ix2] += 1
 
+
+
+#Find the percent likelihood of each bigram
+P = (N+1).float()
+P /= P.sum(1, keepdims=True)
+
+
+g = torch.Generator().manual_seed(2147483647)
+
+for i in range(5):
+  
+  out = []
+  ix = 0
+  while True:
+    p = P[ix]
+    ix = torch.multinomial(p, num_samples=1, replacement=True, generator=g).item()
+    out.append(itos[ix])
+    if ix == 0:
+      break
+  print(''.join(out))
